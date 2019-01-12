@@ -162,3 +162,33 @@ class nmeScraper(scrapy.Spider):
             'author':extract_with_css('div.post-author-info span.author::text'),
             'tag':response.css('div.articleBody a::text').extract()
         }
+
+        
+   class LyricsSpider(scrapy.Spider):
+    name = "lyric"
+
+
+    start_urls = [
+            'http://lyrics.wikia.com/wiki/Radiohead',
+    ]
+
+
+    def parse(self, response):
+
+        for href in response.css('li a::attr(href)').re(r'/wiki/Radiohead:.*'):
+            yield response.follow(href,callback=self.parseLyric)
+
+
+    #爬取歌词保存在json
+    def parseLyric(self,response):
+
+        lyricList = response.css('div.lyricbox::text').extract()
+        lyricText = " "
+        for line in lyricList:
+            lyricText+=line
+            lyricText+='\n'
+
+        yield {
+            'title':response.css('div b::text').extract_first(),
+            'lyric': lyricText
+        }
